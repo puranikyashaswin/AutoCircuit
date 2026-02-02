@@ -1,0 +1,42 @@
+[
+  {
+    "clean": "When Mary and John went to the store, John gave a drink to",
+    "corrupted": "When Mary and John went to the store, Mary gave a drink to",
+    "target": " Mary"
+  },
+  {
+    "clean": "When Alice and Bob went to the park, Bob gave a ball to",
+    "corrupted": "When Alice and Bob went to the park, Alice gave a ball to",
+    "target": " Alice"
+  },
+  {
+    "clean": "After Sarah met with Tom at lunch, Tom handed the keys to",
+    "corrupted": "After Sarah met with Tom at lunch, Sarah handed the keys to",
+    "target": " Sarah"
+  },
+  {
+    "clean": "When Emma and David were at home, David passed the phone to",
+    "corrupted": "When Emma and David were at home, Emma passed the phone to",
+    "target": " Emma"
+  },
+  {
+    "clean": "While Lisa and Mike worked together, Mike sent the report to",
+    "corrupted": "While Lisa and Mike worked together, Lisa sent the report to",
+    "target": " Lisa"
+  },
+  {
+    "clean": "When Kate and James arrived at the office, James gave the folder to",
+    "corrupted": "When Kate and James arrived at the office, Kate gave the folder to",
+    "target": " Kate"
+  },
+  {
+    "clean": "After Rachel met with Chris at the cafe, Chris offered a seat to",
+    "corrupted": "After Rachel met with Chris at the cafe, Rachel offered a seat to",
+    "target": " Rachel"
+  },
+  {
+    "clean": "When Julia and Mark went to the library, Mark lent a book to",
+    "corrupted": "When Julia and Mark went to the library, Julia lent a book to",
+    "target": " Julia"
+  }
+]
