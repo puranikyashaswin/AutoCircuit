@@ -4,7 +4,7 @@ from transformer_lens.hook_points import HookPoint
 from autocircuit.core.model_utils import forward_with_cache
 
 
-# TransformerLens hook point names — using hook_z (pre-W_O head output) rather
+# TransformerLens hook point names - using hook_z (pre-W_O head output) rather
 # than hook_result because TL doesn't expose hook_result. hook_z gives us the
 # (batch, pos, n_heads, d_head) tensor we need for per-head patching.
 def _attn_hook_name(layer):

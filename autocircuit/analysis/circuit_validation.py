@@ -24,7 +24,7 @@ def _zero_mlp_hook(layer):
 def run_ablation(model, clean_tok, target_id, components, pos=-1):
     """Zeros out the given components during a clean forward pass.
     If the components are causally necessary, the logit diff should
-    drop sharply — flipping from correct to incorrect prediction."""
+    drop sharply - flipping from correct to incorrect prediction."""
     with torch.no_grad():
         clean_logits = model(clean_tok)
     clean_score = logit_diff(clean_logits, target_id, pos)

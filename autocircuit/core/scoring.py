@@ -19,7 +19,7 @@ def logit_diff(logits, target_id, pos=-1):
 
 
 def logit_diff_batch(logits, target_ids, positions):
-    """Mean logit diff across a batch — used when averaging over multiple
+    """Mean logit diff across a batch - used when averaging over multiple
     IOI examples to reduce per-prompt noise."""
     total = 0.0
     n = logits.shape[0]

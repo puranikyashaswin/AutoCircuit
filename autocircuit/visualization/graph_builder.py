@@ -37,7 +37,7 @@ def _layer_positions(G):
     return pos
 
 
-def export_png(G, path, title="AutoCircuit — Causal Graph", figsize=(18, 14)):
+def export_png(G, path, title="AutoCircuit - Causal Graph", figsize=(18, 14)):
     if not G.number_of_nodes():
         return path
 

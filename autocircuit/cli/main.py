@@ -32,7 +32,7 @@ def main():
 def _run(args):
     t0 = time.time()
 
-    # lazy imports — TransformerLens + torch are heavy; skip them on --help
+    # lazy imports - TransformerLens + torch are heavy; skip them on --help
     import torch
     from autocircuit.core.model_utils import load_model, tokenize, resolve_target_token
     from autocircuit.core.scoring import logit_diff
@@ -123,7 +123,7 @@ def _run(args):
     with open(out_dir / "all_component_scores.json", "w") as f:
         json.dump(sorted_scores, f, indent=2)
 
-    print(f"\nDone in {time.time() - t0:.1f}s — results in {out_dir.resolve()}")
+    print(f"\nDone in {time.time() - t0:.1f}s - results in {out_dir.resolve()}")
 
 
 if __name__ == "__main__":

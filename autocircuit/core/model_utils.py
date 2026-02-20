@@ -28,7 +28,7 @@ def forward(model, tokens):
 
 def forward_with_cache(model, tokens):
     """Returns (logits, activation_cache). The cache holds every intermediate
-    activation and is ~1.2GB for GPT-2 — we only call this once per clean
+    activation and is ~1.2GB for GPT-2 - we only call this once per clean
     prompt and reuse the cache across all patching iterations."""
     with torch.no_grad():
         return model.run_with_cache(tokens)
@@ -36,12 +36,12 @@ def forward_with_cache(model, tokens):
 
 def resolve_target_token(model, target_text):
     """Converts a target string like ' Bob' to a single token ID.
-    Raises if the string spans multiple tokens — IOI targets must be
+    Raises if the string spans multiple tokens - IOI targets must be
     single-token names for the logit diff metric to be well-defined."""
     ids = model.to_tokens(target_text, prepend_bos=False).squeeze()
     if ids.dim() > 0 and ids.shape[0] > 1:
         raise ValueError(
             f"'{target_text}' tokenizes to {ids.shape[0]} tokens "
-            f"({ids.tolist()}) — need exactly 1 for logit diff"
+            f"({ids.tolist()}) - need exactly 1 for logit diff"
         )
     return int(ids.item()) if ids.dim() == 0 else int(ids[0].item())
