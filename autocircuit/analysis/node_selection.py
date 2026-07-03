@@ -45,14 +45,14 @@ def score_all(model, clean_tok, corrupt_tok, target_id, pos=-1):
                 patch_head(model, corrupt_tok, clean_cache, layer, head),
                 target_id, pos
             )
-            scores[component_label("attn_head", layer, head)] = abs(patched - baseline)
+            scores[component_label("attn_head", layer, head)] = patched - baseline
 
     for layer in tqdm(range(n_layers), desc="mlps", leave=False):
         patched = logit_diff(
             patch_mlp(model, corrupt_tok, clean_cache, layer),
             target_id, pos
         )
-        scores[component_label("mlp", layer)] = abs(patched - baseline)
+        scores[component_label("mlp", layer)] = patched - baseline
 
     return scores
 
