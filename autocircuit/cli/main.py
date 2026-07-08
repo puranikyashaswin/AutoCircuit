@@ -38,7 +38,7 @@ def _run(args):
     from autocircuit.core.scoring import logit_diff
     from autocircuit.core.patching import cache_clean_run, corrupted_baseline
     from autocircuit.analysis.node_selection import score_all, select_top_k
-    from autocircuit.analysis.edge_analysis import analyze_edges
+    from autocircuit.analysis.edge_analysis import analyze_edges, analyze_edges_dataset
     from autocircuit.visualization.graph_builder import build_graph, export_png
 
     dataset_path = Path(args.dataset)
@@ -58,40 +58,105 @@ def _run(args):
             print(f"Error: index {args.example_index} out of range")
             sys.exit(1)
         examples = [dataset[args.example_index]]
+        is_average = False
     else:
         examples = dataset
+        is_average = True
 
-    ex = examples[0]
-    print(f"  clean:     {ex['clean']}")
-    print(f"  corrupted: {ex['corrupted']}")
-    print(f"  target:    {ex['target']}")
+    if not is_average:
+        ex = examples[0]
+        print(f"  clean:     {ex['clean']}")
+        print(f"  corrupted: {ex['corrupted']}")
+        print(f"  target:    {ex['target']}")
 
-    clean_tok = tokenize(model, ex["clean"])
-    corrupt_tok = tokenize(model, ex["corrupted"])
-    target_id = resolve_target_token(model, ex["target"])
+        clean_tok = tokenize(model, ex["clean"])
+        corrupt_tok = tokenize(model, ex["corrupted"])
+        target_id = resolve_target_token(model, ex["target"])
 
-    # baselines
-    clean_logits, _ = cache_clean_run(model, clean_tok)
-    corrupt_logits = corrupted_baseline(model, corrupt_tok)
-    clean_ld = logit_diff(clean_logits, target_id)
-    corrupt_ld = logit_diff(corrupt_logits, target_id)
-    print(f"\n  clean logit diff:     {clean_ld:+.4f}")
-    print(f"  corrupted logit diff: {corrupt_ld:+.4f}")
-    print(f"  drop:                 {clean_ld - corrupt_ld:+.4f}")
+        # baselines
+        clean_logits, _ = cache_clean_run(model, clean_tok)
+        corrupt_logits = corrupted_baseline(model, corrupt_tok)
+        clean_ld = logit_diff(clean_logits, target_id)
+        corrupt_ld = logit_diff(corrupt_logits, target_id)
+        print(f"\n  clean logit diff:     {clean_ld:+.4f}")
+        print(f"  corrupted logit diff: {corrupt_ld:+.4f}")
+        print(f"  drop:                 {clean_ld - corrupt_ld:+.4f}")
 
-    # score all components
-    all_scores = score_all(model, clean_tok, corrupt_tok, target_id)
-    top_k = select_top_k(all_scores, k=args.top_k)
+        # score all components
+        all_scores = score_all(model, clean_tok, corrupt_tok, target_id)
+        top_k = select_top_k(all_scores, k=args.top_k)
 
-    print(f"\nTop-{args.top_k} components:")
-    for i, c in enumerate(top_k[:10]):
-        print(f"  {i+1:2d}. {c['name']:18s} score={c['raw_score']:.4f}")
-    if len(top_k) > 10:
-        print(f"  ... and {len(top_k) - 10} more")
+        print(f"\nTop-{args.top_k} components:")
+        for i, c in enumerate(top_k[:10]):
+            print(f"  {i+1:2d}. {c['name']:18s} score={c['raw_score']:.4f}")
+        if len(top_k) > 10:
+            print(f"  ... and {len(top_k) - 10} more")
 
-    # edge analysis
-    edges = analyze_edges(model, clean_tok, corrupt_tok, target_id,
-                          top_k, threshold=args.edge_threshold)
+        # edge analysis
+        edges = analyze_edges(model, clean_tok, corrupt_tok, target_id,
+                              top_k, threshold=args.edge_threshold)
+        
+        results_ex = ex
+        results_clean_ld = clean_ld
+        results_corrupt_ld = corrupt_ld
+        results_drop = clean_ld - corrupt_ld
+    else:
+        # Loop over dataset and average scores and baselines
+        from collections import defaultdict
+        accumulated_scores = defaultdict(float)
+        sum_clean_ld = 0.0
+        sum_corrupt_ld = 0.0
+        n_examples = len(examples)
+
+        print(f"Running baseline scoring across all {n_examples} examples...")
+        for idx, ex in enumerate(examples):
+            print(f"\n--- Example {idx+1}/{n_examples} ---")
+            print(f"  clean:     {ex['clean']}")
+            print(f"  corrupted: {ex['corrupted']}")
+            print(f"  target:    {ex['target']}")
+
+            clean_tok = tokenize(model, ex["clean"])
+            corrupt_tok = tokenize(model, ex["corrupted"])
+            target_id = resolve_target_token(model, ex["target"])
+
+            clean_logits, _ = cache_clean_run(model, clean_tok)
+            corrupt_logits = corrupted_baseline(model, corrupt_tok)
+            clean_ld = logit_diff(clean_logits, target_id)
+            corrupt_ld = logit_diff(corrupt_logits, target_id)
+
+            sum_clean_ld += clean_ld
+            sum_corrupt_ld += corrupt_ld
+
+            scores = score_all(model, clean_tok, corrupt_tok, target_id)
+            for name, val in scores.items():
+                accumulated_scores[name] += val
+
+        avg_clean_ld = sum_clean_ld / n_examples
+        avg_corrupt_ld = sum_corrupt_ld / n_examples
+        avg_drop = avg_clean_ld - avg_corrupt_ld
+        all_scores = {name: val / n_examples for name, val in accumulated_scores.items()}
+
+        print(f"\nAveraged Baselines (n={n_examples}):")
+        print(f"  Avg clean logit diff:     {avg_clean_ld:+.4f}")
+        print(f"  Avg corrupted logit diff: {avg_corrupt_ld:+.4f}")
+        print(f"  Avg drop:                 {avg_drop:+.4f}")
+
+        top_k = select_top_k(all_scores, k=args.top_k)
+
+        print(f"\nTop-{args.top_k} components (averaged):")
+        for i, c in enumerate(top_k[:10]):
+            print(f"  {i+1:2d}. {c['name']:18s} score={c['raw_score']:.4f}")
+        if len(top_k) > 10:
+            print(f"  ... and {len(top_k) - 10} more")
+
+        # dataset edge analysis
+        edges = analyze_edges_dataset(model, examples, top_k, threshold=args.edge_threshold)
+
+        results_ex = "all"
+        results_clean_ld = avg_clean_ld
+        results_corrupt_ld = avg_corrupt_ld
+        results_drop = avg_drop
+
     print(f"\nTop edges:")
     for i, e in enumerate(edges[:10]):
         print(f"  {i+1:2d}. {e['source']:18s} -> {e['target']:18s} w={e['weight']:.4f}")
@@ -108,10 +173,10 @@ def _run(args):
     results = {
         "model": args.model,
         "dataset": str(dataset_path),
-        "example": ex,
-        "clean_logit_diff": round(clean_ld, 4),
-        "corrupted_logit_diff": round(corrupt_ld, 4),
-        "score_drop": round(clean_ld - corrupt_ld, 4),
+        "example": results_ex,
+        "clean_logit_diff": round(results_clean_ld, 4),
+        "corrupted_logit_diff": round(results_corrupt_ld, 4),
+        "score_drop": round(results_drop, 4),
         "top_k_components": top_k,
         "edges": edges,
         "config": {"top_k": args.top_k, "edge_threshold": args.edge_threshold},
