@@ -103,7 +103,7 @@ Scored all 156 components independently on each of the 8 examples:
 | Encoding | `mlp_L0` | Enriches token embeddings with name identity. Restoring it alone recovers 95%. |
 | Pattern detection | `attn_L3_H0`, `attn_L5_H5` | Detects that a name appears twice - the induction signal that triggers the IOI circuit. |
 | Entity tracking | `attn_L6_H9`, `attn_L7_H3`, `attn_L7_H9` | Tracks subject vs indirect object. Suppresses the subject to prevent copying the wrong name. |
-| Name moving | `attn_L8_H6`, `attn_L8_H10`, `attn_L9_H9`, `attn_L10_H7`, `attn_L11_H10` | Copies the indirect object name to the output position. These are the decision-making heads. |
+| Name moving | `attn_L8_H6`, `attn_L8_H10`, `attn_L9_H9`, `attn_L10_H0`, `attn_L9_H7` | Copies the indirect object name to the output position. These are the decision-making heads. |
 | Output shaping | `mlp_L5`, `mlp_L11` | Adjusts final logit distribution to boost the correct name. |
 
 This hierarchy - **encode, detect, track, move, refine** - matches the IOI circuit described in the literature.

@@ -24,7 +24,7 @@ def score_all(model, clean_tok, corrupt_tok, target_id, pos=-1):
     """Scores every attention head and MLP layer by patching each one
     from clean into corrupted and measuring how much the logit diff recovers.
 
-    Importance(C) = |patched_score - corrupted_baseline_score|
+    Importance(C) = patched_score - corrupted_baseline_score
 
     High score => restoring that component's clean activation substantially
     recovers the model's correct behavior on the IOI task."""
